@@ -143,6 +143,29 @@ router.get('/devices', async (req, res) => {
 });
 
 
+// get device details by council
+router.get('/devices/:councilName', async (req, res) => {
+    const councilName = req.params.councilName.trim();
+
+    try {
+        const users = await User.find(
+            {
+                council: { $regex: new RegExp(`^${councilName}$`, 'i') }
+            },
+            'username deviceId council city status'
+        );
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('Error fetching devices:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+
+
+
+
 
 
 
