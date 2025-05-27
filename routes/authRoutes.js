@@ -109,13 +109,16 @@ router.post('/register', async (req, res) => {
     const { username, password, deviceId, council, city } = req.body;
 
     try {
-        // Check if username or deviceId already exists
-        const existingUser = await User.findOne({
-            $or: [{ username }, { deviceId }]
-        });
+        // Check if device already exists
+        const deviceExists = await User.findOne({ deviceId });
+        if (deviceExists) {
+            return res.status(400).json({ message: 'An account has already been registered on this device.' });
+        }
 
-        if (existingUser) {
-            return res.status(400).json({ message: 'User or device already exists' });
+        // Check if username already exists
+        const usernameExists = await User.findOne({ username });
+        if (usernameExists) {
+            return res.status(400).json({ message: 'Username is already taken. Please choose another one.' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -145,6 +148,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 
 
