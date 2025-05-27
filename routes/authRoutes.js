@@ -106,29 +106,43 @@ const router = express.Router();
 
 // Register route
 router.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, deviceId, council, city } = req.body;
 
     try {
-        const existingUser = await User.findOne({ username });
+        // Check if username or deviceId already exists
+        const existingUser = await User.findOne({
+            $or: [{ username }, { deviceId }]
+        });
+
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(400).json({ message: 'User or device already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
+
+        const newUser = new User({
+            username,
+            password: hashedPassword,
+            deviceId,
+            council,
+            city,
+        });
+
         await newUser.save();
 
-        // Return the user ID with the message
         res.status(201).json({
             message: 'User registered successfully',
             user: {
                 _id: newUser._id,
                 username: newUser.username,
+                deviceId: newUser.deviceId,
+                council: newUser.council,
+                city: newUser.city,
             },
         });
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
